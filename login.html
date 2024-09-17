@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Login</h1>
+    User: <input id="username" type="text">
+    Password: <input id="password" type="password">
+    <button onclick="login()">Login</button>
+
+    <!-- Контейнер для отображения списка книг -->
+    <h2>Books List</h2>
+    <div id="booksList"></div>
+
+    <script>
+        const MY_SERVER = "http://127.0.0.1:5000";
+        
+        const login = async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await axios.post(`${MY_SERVER}/login`, { username, password });
+                localStorage.setItem('access_token', res.data.access_token);
+                alert('Login successful');
+
+                // После успешного входа получаем список книг
+                getBooks();
+            } catch (error) {
+                console.error(error);
+                alert('Login failed');
+            }
+        }
+
+        // Функция для получения и отображения списка книг
+        const getBooks = async () => {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await axios.get(`${MY_SERVER}/books`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`  // Передаем токен
+                    }
+                });
+
+                // Отображаем книги на странице
+                const booksList = document.getElementById('booksList');
+                booksList.innerHTML = '';  // Очищаем контейнер
+                res.data.forEach(book => {
+                    const bookItem = document.createElement('div');
+                    bookItem.textContent = `ID: ${book.id}, Title: ${book.title}, Author: ${book.author}`;
+                    booksList.appendChild(bookItem);
+                });
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load books');
+            }
+        }
+    </script>
+</body>
+</html>
